@@ -1,0 +1,256 @@
+<style>
+    #btnSubmit {
+        margin-top: 7px;
+        float: right;
+        margin-right: 0px;
+    }
+
+    .add-rule-class .modal-content {
+        width: 1000px; /* New width for large modal */
+    }
+
+    .add-rule-class .control-label {
+        text-align: left;
+    }
+
+    .add-rule-class .form-group {
+        line-height: 3em;
+    }
+
+    .add-rule-class input, input.input-standard {
+        height: 35px;
+    }
+
+    .add-rule-class select {
+        min-height: 30px;
+    }
+
+    div.fake-last.input-group-addon {
+        border-radius: 4px;
+        border-left: 0;
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+    }
+
+    .modal-dialog {
+        margin-left: 18% !important;
+        width: inherit;
+        max-width: 1000px !important;
+    }
+
+    .shuffle-box ul li {
+        padding: 2px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        cursor: pointer;
+        overflow: hidden;
+        height: 30px !important;
+    }
+
+    .shuffle-box ul {
+        width: 250px !important;
+    }
+
+    .dropdown-menu {
+        width: 650px !important;
+    }
+
+    .ss-breadcrumb {
+        padding-bottom: 10px;
+        padding-top: 20px;
+    }
+
+    .ss-breadcrumb-link {
+        font-family: Helvetica, Arial, sans-serif;
+        font-size: 15px;
+        font-weight: normal;
+        cursor: pointer;
+    }
+
+    .ss-breadcrumb-slash {
+        font-family: Helvetica, Arial, sans-serif;
+        font-size: 15px;
+        font-weight: normal;
+    }
+
+    .ss-breadcrumb-active {
+        font-family: Helvetica, Arial, sans-serif;
+        font-size: 22px;
+        font-weight: bold;
+    }
+
+    hr {
+        border-style: inset;
+        max-width: 1090px;
+    }
+
+    .add-rule-class {
+        width: 50%;
+    }
+
+    .add-rule-class btnSaveClass {
+        max-width: 180px;
+    }
+
+    .ui-icon.iconOpen {
+        background: url('YOUR Image HERE') no-repeat;
+        background-size: 20px;
+        width: 20px;
+        height: 20px;
+    }
+
+    .ui-icon.iconClosed {
+        background: url('YOUR Image HERE') no-repeat -5px;
+        background-size: 30px;
+        width: 20px;
+        height: 20px;
+    }
+
+    .panel-group .panel {
+        margin-bottom: 33px !important;
+    }
+
+    .add-rule-class .input-group {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+
+    .closeBtnClass {
+        float: right;
+        z-index: 5;
+        color: red;
+    }
+
+    .addBtnClass {
+        float: right;
+        margin-right: 16px;
+        margin-top: 13px;
+    }
+
+    a {
+        color: #336EFF;
+    }
+
+    #chkbox-status-edit {
+        display: inline-block;
+        margin-left: 15px;
+        height: 18px !important;
+    }
+
+</style>
+
+<div class="add-rule-class">
+    <form #myForm="ngForm" novalidate (ngSubmit)="save(myForm)" *ngIf="rule">
+        <accordion>
+            <accordion-group *ngFor="let group of groups; let i=index; trackBy:trackByIndex" [isOpen]="true">
+                <div accordion-heading style="text-align: center;">
+                    Rule {{i+1}}
+                    <div class="closeBtnClass" [hidden]="groups.length == 1">
+                        <i class="fa fa-times" (click)="removeRule (i)"></i>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-3 control-label"><label class="control-label rullLabelClass">Location ID</label>
+                    </div>
+                    <div class="col-sm-3 control-label"><label class="control-label"><b>is equal to</b></label></div>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control" name="location{{i+1}}" #location="ngModel"
+                               [(ngModel)]="rule[group.location]" required numeric maxlength="9">
+                        <div class='help-block' *ngIf="location.invalid && location.touched">
+                            <div class='text-danger' *ngIf="location.errors?.required">Location ID value is required</div>
+                            <div class="text-danger" *ngIf="location.errors?.numeric">Location ID value must be numeric</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="col-sm-3 control-label"><label class="">Issuer Country</label></div>
+                    <div class="col-sm-3">
+                        <select class="form-control" id="issCountryOperator{{i+1}}" name="issCountryOperator{{i+1}}" (change)="onCountryOperatorSelect($event, i)" [(ngModel)]="rule[group.issCountryOperator]">
+                            <option *ngFor="let operator of issCountryOperators"
+                                 			 [value]="operator.value">{{operator.name}}
+                            </option>
+                        </select>
+                    </div>
+                    <div class="input-group col-sm-6 " *ngIf="rule[group.issCountryOperator]==='oneof' || rule[group.issCountryOperator]==='other' " [ngClass]="{open: rule[group.isOpenShuffleBox] === true}" dropdown>
+                        <input type="text" class="form-control" #shuffleBoxInput="ngModel" [(ngModel)]="rule[group.issCountryShuffleInput]" name="issCountryShuffleInput{{i+1}}" readonly/>
+                        <div class="fake-last input-group-addon" (click)="setShuffleBoxCountries (shuffleBoxInput.value, i)">
+                            <span class="fa fa-list" aria-hidden="true" dropdownToggle (click)="rule[group.isOpenShuffleBox] = !rule[group.isOpenShuffleBox]"></span>
+                        </div>
+                        <div class="value-drop dropdown-menu" dropdownMenu role="menu">
+                            <shuffle-box name="issCountryShuffleBox{{i+1}}" [(ngModel)]="rule[group.issCountryShuffleBox]" (change)="setListValue ($event, i)"></shuffle-box>
+                            <div class="pull-right">
+                                <button class="btn primary" (click)="rule[group.isOpenShuffleBox] = false;">Ok</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6" *ngIf="rule[group.issCountryOperator]==='equals' || rule[group.issCountryOperator]==='notequals'">
+                        <select [(ngModel)]="rule[group.issCountryDropdown]" class="form-control" name="issCountryDropdown{{i+1}}" #countryDropDown="ngModel">
+                            <option></option>
+                            <option *ngFor="let country of group.countries" [value]="country.id">{{country.display}} </option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">Amount</label>
+                    <div class="col-sm-3">
+                        <select class="form-control" name="amtType{{i+1}}" [(ngModel)]="rule[group.amtType]">
+                            <option *ngFor="let txnamt of txnAmounts" [selected]="txnamt.value == 'equals' " [value]="txnamt.value">{{txnamt.name}} </option>
+                        </select>
+                    </div>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control" name="amt{{i+1}}" #amt="ngModel" [(ngModel)]="rule[group.amt]" numeric maxlength="19">
+                        <div class='help-block' *ngIf="amt.invalid && amt.touched">
+                            <div class="text-danger" *ngIf="amt.errors?.numeric">Amount value must be numeric</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">Date Range</label>
+                    <label class="col-sm-3 control-label"><b>is equal to</b></label>
+                    <div class="col-sm-3">
+                        <input type="text" class="form-control" name="dateRange{{i+1}}" #dateRange="ngModel" (keyup)="onDateRangeType(i)" [(ngModel)]="rule[group.dateRange]" required numeric maxlength="3">
+                        <div class='help-block' *ngIf="dateRange.invalid && dateRange.touched">
+                            <div class="text-danger" *ngIf="dateRange.errors?.required">Date Range value is required</div>
+                            <div class="text-danger" *ngIf="dateRange.errors?.numeric">Date Range value must be numeric</div>
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <select class="form-control" name="dateRangeType{{i+1}}" (change)="onDateRangeTypeSelect($event, i)" [(ngModel)]="rule[group.dateRangeType]">
+                            <option *ngFor="let timeunit of timeUnits" [selected]="timeunit.value == 'days' " [value]="timeunit.value">{{timeunit.name}} </option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-offset-6 col-sm-7 search-rule-input">
+                        <div class='help-block' *ngIf="rule[group.invalidDateRange]">
+                            <div class="text-danger">Date range value cannot be more than one year</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group" *ngIf="this.state == 'edit'">
+                    <label class="col-sm-3 control-label">Status</label>
+                    <input id="chkbox-status-edit" type="checkbox" name="status{{i+1}}" [(ngModel)]="rule[group.status]">
+                </div>
+
+                <div *ngIf="this.state != 'edit'  && i == groups.length - 1 " class="addBtnClass">
+                    <a (click)="addRule (i)" style="cursor: default"> + Add Rule </a>
+                </div>
+            </accordion-group>
+
+        </accordion>
+        <button class="col-sm-10" id="btnSubmit" class="btn primary" [disabled]="myForm.invalid || isSaving " type="submit"> Submit </button>
+    </form>
+</div>
+
+
+<h2>Example with email validation</h2>
+  <tag-input
+    placeholder="Add an email"
+    [(ngModel)]="emails"
+    [allowedTagsPattern]="validEmailPattern"
+    delimiterCode="188">
+  </tag-input>
